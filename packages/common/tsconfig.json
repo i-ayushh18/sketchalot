@@ -1,0 +1,11 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declaration": true,
+    "module": "NodeNext", // ✅ Ensure compatibility with modern ESM/CJS handling
+    "moduleResolution": "NodeNext"
+  },
+  "include": ["src"]
+}
