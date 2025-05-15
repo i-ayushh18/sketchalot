@@ -173,46 +173,57 @@ import { useSocket } from "../hooks/useSocket";
 
 export function ChatRoomClient({
     messages,
-    id
-}: {
-    messages: {message: string}[];
-    id: string
-}) {
+    id,
+    socket
+  }: {
+    messages: { message: string }[];
+    id: string;
+    socket: WebSocket;
+  }) {
     const [chats, setChats] = useState(messages);
     const [currentMessage, setCurrentMessage] = useState("");
-    const {socket, loading} = useSocket();
-
+  
     useEffect(() => {
-        if (socket && !loading) {
-
-            socket.send(JSON.stringify({
-                type: "join_room",
-                roomId: id
-            }));
-
-            socket.onmessage = (event) => {
-                const parsedData = JSON.parse(event.data);
-                if (parsedData.type === "chat") {
-                    setChats(c => [...c, {message: parsedData.message}])
-                }
-            }
+      socket.send(JSON.stringify({
+        type: "join_room",
+        roomId: id
+      }));
+  
+      socket.onmessage = (event) => {
+        const parsedData = JSON.parse(event.data);
+        if (parsedData.type === "chat") {
+          setChats(c => [...c, { message: parsedData.message }]);
         }
-    }, [socket, loading, id])
-
-    return <div>
-        {chats.map(m => <div>{m.message}</div>)}
-
-        <input type="text" value={currentMessage} onChange={e => {
-            setCurrentMessage(e.target.value);
-        }}></input>
-        <button onClick={() => {
-            socket?.send(JSON.stringify({
-                type: "chat",
-                roomId: id,
-                message: currentMessage
-            }))
-
+      };
+    }, [socket, id]);
+  
+    return (
+      <div>
+        <div className="space-y-2 mb-4">
+          {chats.map((m, i) => (
+            <div key={i} className="bg-gray-200 p-2 rounded">{m.message}</div>
+          ))}
+        </div>
+        <input
+          className="border w-full p-2"
+          type="text"
+          value={currentMessage}
+          onChange={e => setCurrentMessage(e.target.value)}
+        />
+        <button
+          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={() => {
+            socket.send(JSON.stringify({
+              type: "chat",
+              roomId: id,
+              message: currentMessage
+            }));
             setCurrentMessage("");
-        }}>Send message</button>
-    </div>
-}
+          }}
+        >
+          Send message
+        </button>
+      </div>
+    );
+  }
+  

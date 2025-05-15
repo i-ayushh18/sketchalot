@@ -74,8 +74,8 @@ model Room {
   id          Int       @id @default(autoincrement())
   slug        String    @unique
   createdAt   DateTime  @default(now())
-  adminId     String
-  admin       User      @relation(fields: [adminId], references: [id])
+  adminId     String?
+  admin       User?      @relation(fields: [adminId], references: [id])
   chats       Chat[]
 
   Shape Shape[]
@@ -92,8 +92,8 @@ model Chat {
 model Shape {
   id        Int     @id @default(autoincrement())
   type      String
-  x         Int
-  y         Int
+  x         Int?
+  y         Int?
   width     Int?
   height    Int?
   radius    Int?
@@ -105,4 +105,6 @@ model Shape {
   endY      Int?
   room      Room    @relation(fields: [roomId], references: [id])
   roomId    Int
+  
+
 }

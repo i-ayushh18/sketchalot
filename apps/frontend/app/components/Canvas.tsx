@@ -74,68 +74,119 @@
 // //     </div>
 // //   );
 // // }
- import { initDraw } from "../draw";
-import { useEffect, useRef, useState } from "react";
+// File: components/Canvas.tsx
+import { JSX, useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
-import { Circle, Pencil, RectangleHorizontalIcon } from "lucide-react";
+import {
+  Circle,
+  Pencil,
+  RectangleHorizontalIcon,
+  Slash,
+  ArrowRight,
+  Eraser,
+} from "lucide-react";
 import { Game } from "../draw/game";
+import {ChatRoomClient} from "../../../web/components/ChatRoomClient"
 
-export type Tool = "circle" | "rect" | "pencil";
+export type Tool =
+  | "circle"
+  | "rect"
+  | "pencil"
+  | "slash"
+  | "arrowright"
+  | "eraser";
 
 export function Canvas({
-    roomId,
-    socket
+  roomId,
+  socket,
 }: {
-    socket: WebSocket;
-    roomId: string;
+  socket: WebSocket;
+  roomId: string;
 }) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [game, setGame] = useState<Game>();
-    const [selectedTool, setSelectedTool] = useState<Tool>("circle")
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [game, setGame] = useState<Game>();
+  const [selectedTool, setSelectedTool] = useState<Tool>("circle");
 
-    useEffect(() => {
-        game?.setTool(selectedTool);
-    }, [selectedTool, game]);
+  // 1️⃣ On mount: create the Game instance and store it
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
-    useEffect(() => {
-        if (canvasRef.current) {
-            initDraw(canvasRef.current, roomId, socket);
-        }
-    }, [canvasRef]);
-    
+    const g = new Game(canvasRef.current, roomId, socket);
+    setGame(g);
 
-    return <div style={{
+    // cleanup on unmount
+    return () => {
+      g.destroy();
+    };
+  }, [roomId, socket]);
+
+  // 2️⃣ Whenever selectedTool changes, update the Game
+  useEffect(() => {
+    if (game) {
+      console.log("📌 Updating Game tool to:", selectedTool);
+      game.setTool(selectedTool);
+    }
+  }, [selectedTool, game]);
+
+  return (
+    <div
+      style={{
         height: "100vh",
-        overflow: "hidden"
-    }}>
-        <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight}></canvas>
-        <Topbar setSelectedTool={setSelectedTool} selectedTool={selectedTool} />
+        overflow: "hidden",
+        
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        width={window.innerWidth}
+        height={window.innerHeight}
+        style={{ display: "block" }}
+      />
+      <Topbar
+        selectedTool={selectedTool}
+        setSelectedTool={setSelectedTool}
+      />
     </div>
+  );
 }
 
-function Topbar({selectedTool, setSelectedTool}: {
-    selectedTool: Tool,
-    setSelectedTool: (s: Tool) => void
+function Topbar({
+  selectedTool,
+  setSelectedTool,
+}: {
+  selectedTool: Tool;
+  setSelectedTool: (s: Tool) => void;
 }) {
-    return <div style={{
-            position: "fixed",
-            top: 10,
-            left: 10
-        }}>
-            <div className="flex gap-t">
-                <IconButton 
-                    onClick={() => {
-                        setSelectedTool("pencil")
-                    }}
-                    activated={selectedTool === "pencil"}
-                    icon={<Pencil />}
-                />
-                <IconButton onClick={() => {
-                    setSelectedTool("rect")
-                }} activated={selectedTool === "rect"} icon={<RectangleHorizontalIcon />} ></IconButton>
-                <IconButton onClick={() => {
-                    setSelectedTool("circle")
-                }} activated={selectedTool === "circle"} icon={<Circle />}></IconButton>
-            </div>
-        </div>
+  const tools: { tool: Tool; icon: JSX.Element }[] = [
+    { tool: "pencil", icon: <Pencil /> },
+    { tool: "rect", icon: <RectangleHorizontalIcon /> },
+    { tool: "circle", icon: <Circle /> },
+    { tool: "slash", icon: <Slash /> },
+    { tool: "arrowright", icon: <ArrowRight /> },
+    { tool: "eraser", icon: <Eraser /> },
+  ];
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: "5%",
+        left:  "50%",
+        transform:"translate(-50%,-50%)",
+       zIndex:1000
+      }}
+    >
+      <div className="flex gap-2 items-center bg-white rounded-3xl ">
+        {tools.map(({ tool, icon }) => (
+          <IconButton
+            key={tool}
+            onClick={() => setSelectedTool(tool)}
+            activated={selectedTool === tool}
+            icon={icon}
+          />
+        ))}
+      </div>
+      
+    </div>
+  );
 }

@@ -1,20 +1,27 @@
-import { NextFunction,Request,Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 const { JWT_SECRET } = require("@repo/backend-common/config");
-import jwt from "jsonwebtoken"
 
-export function middleware(req:Request,res:Response,next:NextFunction){
-    const token=req.headers["authorization"] ?? "";
-    const decoded=jwt.verify(token,JWT_SECRET);
-    console.log("Decoded token:", decoded);
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
-    if(decoded){
-        //@ts-ignore
-        req.userId=decoded.userId;
-        next();
+export function middleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers["authorization"];
 
-    }else{
-        res.status(403).json({
-            message:"Unauthorized"
-        })
-    }
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.error("❌ No or malformed Authorization header");
+    return res.status(401).json({ message: "Token missing or malformed" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    req.userId = decoded.userId;
+    next();
+  } catch (err) {
+    console.error("❌ JWT verification failed:", err);
+    return res.status(403).json({ message: "Unauthorized" });
+  }
 }

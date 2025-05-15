@@ -73,70 +73,144 @@
 //   console.error("❌ Unknown shape type:", shape.type);
 //   return false; // If the type doesn't match, it's invalid
 // }
+// http.ts
+
+// http.ts
+
 import { HTTP_BACKEND } from "@/config";
 import axios from "axios";
 
-type RectShape = { type: "rect"; x: number; y: number; width: number; height: number; };
-type CircleShape = { type: "circle"; centerX: number; centerY: number; radius: number; };
-type PencilShape = { type: "pencil"; startX: number; startY: number; endX: number; endY: number; };
+// 1️⃣ Define each shape type…
+type RectShape = {
+  type: "rect";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
-type Shape = RectShape | CircleShape | PencilShape;
+type CircleShape = {
+  type: "circle";
+  centerX: number;
+  centerY: number;
+  radius: number;
+};
+
+type PencilShape = {
+  type: "pencil";
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+};
+
+type SlashShape = {
+  type: "slash";
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+};
+
+type ArrowShape = {
+  type: "arrowright";
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+};
+
+type EraserShape = {
+  type: "eraser";
+  x: number;
+  y: number;
+  size: number;
+};
+
+// 2️⃣ Union them all
+export type Shape =
+  | RectShape
+  | CircleShape
+  | PencilShape
+  | SlashShape
+  | ArrowShape
+  | EraserShape;
 
 interface Message {
   message: string;
 }
 
-export async function getExistingShapes(roomId: string): Promise<Shape[]> {
+export async function getExistingShapes(roomSlug: string): Promise<Shape[]> {
   try {
-    const res = await axios.get(`${HTTP_BACKEND}/chats/${roomId}`);
+    // Resolve slug → ID
+    const roomRes = await axios.get(
+      `${HTTP_BACKEND}/room/${encodeURIComponent(roomSlug)}`
+    );
+    const roomId: number | undefined = roomRes.data.room?.id;
+    if (!roomId) return [];
+
+    // Fetch chats by numeric ID
+    const res = await axios.get(
+      `${HTTP_BACKEND}/chats/${encodeURIComponent(roomId.toString())}`
+    );
     const messages: Message[] = res.data.messages;
 
+    // Parse messages into shapes, using the guard below
     const shapes: Shape[] = messages
       .map((x) => {
         try {
-          const messageData = JSON.parse(x.message);
-          const shape = messageData.shape;
-
-          // Ensure the shape has the correct properties
-          if (shape && isValidShape(shape)) {
-            return shape;
-          } else {
-            console.error("❌ Invalid shape data:", shape);
-            return null; // Return null for invalid shapes
-          }
+          const { shape } = JSON.parse(x.message);
+          return isValidShape(shape) ? shape : null;
         } catch (e) {
-          console.error("❌ Failed to parse message:", e);
-          return null; // Return null if JSON parsing fails
+          console.error("❌ Failed to parse message JSON:", e);
+          return null;
         }
       })
-      .filter((shape): shape is Shape => shape !== null); // Remove null values
+      .filter((s): s is Shape => s !== null);
 
     return shapes;
   } catch (error) {
     console.error("❌ Error fetching existing shapes:", error);
-    return []; // Return an empty array if the API call fails
+    return [];
   }
 }
 
-// Type guard to validate the shape structure
-function isValidShape(shape: any): shape is Shape {
-  if (typeof shape !== "object" || shape === null || typeof shape.type !== "string") {
-    console.error("❌ Invalid shape structure: Missing type or incorrect structure");
-    return false; // Invalid if it's not an object or type is missing
-  }
+// 3️⃣ Type‐guard that now accepts arrowright too
+function isValidShape(obj: any): obj is Shape {
+  if (typeof obj !== "object" || obj === null || typeof obj.type !== "string")
+    return false;
 
-  switch (shape.type) {
+  switch (obj.type) {
     case "rect":
-      return typeof shape.x === "number" && typeof shape.y === "number" &&
-             typeof shape.width === "number" && typeof shape.height === "number";
+      return (
+        typeof obj.x === "number" &&
+        typeof obj.y === "number" &&
+        typeof obj.width === "number" &&
+        typeof obj.height === "number"
+      );
     case "circle":
-      return typeof shape.centerX === "number" && typeof shape.centerY === "number" &&
-             typeof shape.radius === "number";
+      return (
+        typeof obj.centerX === "number" &&
+        typeof obj.centerY === "number" &&
+        typeof obj.radius === "number"
+      );
     case "pencil":
-      return typeof shape.startX === "number" && typeof shape.startY === "number" &&
-             typeof shape.endX === "number" && typeof shape.endY === "number";
+    case "slash":
+    case "arrowright":  // ← added here
+      return (
+        typeof obj.startX === "number" &&
+        typeof obj.startY === "number" &&
+        typeof obj.endX === "number" &&
+        typeof obj.endY === "number"
+      );
+    case "eraser":
+      return (
+        typeof obj.x === "number" &&
+        typeof obj.y === "number" &&
+        typeof obj.size === "number"
+      );
     default:
-      console.error("❌ Unknown shape type:", shape.type);
-      return false; // If the type doesn't match, it's invalid
+      return false;
   }
 }
+
