@@ -906,9 +906,9 @@ interface IncomingMessage {
 
 // Define the structure of shape data for the "shape" message type
 interface ShapeData {
-  type: "rectangle" | "circle" | "line" | "pencil"| "arrowright" | "eraser"; // example shape types
-  x: number;
-  y: number;
+  type: "rect" | "circle" | "slash" | "pencil" | "arrowright" | "eraser";
+  x?: number;
+  y?: number;
   width?: number;
   height?: number;
   radius?: number;
@@ -918,7 +918,10 @@ interface ShapeData {
   startY?: number;
   endX?: number;
   endY?: number;
+  points?: { x: number; y: number }[]; // For pencil tool
+  size?: number; // For eraser thickness
 }
+
 
 wss.on("connection", async (ws: WebSocket, request: any) => {
   const url = request?.url || "";
@@ -1042,10 +1045,8 @@ wss.on("connection", async (ws: WebSocket, request: any) => {
         
           // 🔁 Normalize incoming shape types
           const aliasMap: Record<string, ShapeData["type"]> = {
-            rect: "rectangle",
-            rectangle: "rectangle",
-            slash: "line",
-            line: "line",
+            rect: "rect",
+            slash: "slash",
             arrowright:"arrowright",  
             pencil: "pencil",
             circle: "circle",
@@ -1079,28 +1080,15 @@ wss.on("connection", async (ws: WebSocket, request: any) => {
             console.log("📐 Incoming shape data:", shape);
         
             const {
-              x,
-              y,
-              width,
-              height,
-              radius,
-              centerX,
-              centerY,
-              startX,
-              startY,
-              endX,
-              endY,
+              x, y, width, height, radius, centerX, centerY,
+              startX, startY, endX, endY, points, size
             } = shape;
-        
-           const shapeData:any={
-                type: normalizedType, // ✅ Use normalized type
-                room: {
-                  connect: {
-                    id: room.id,
-                  },
-                },
-              }
-           
+            
+            const shapeData: any = {
+              type: normalizedType,
+              room: { connect: { id: room.id } },
+            };
+            
             if (typeof x === "number") shapeData.x = x;
             if (typeof y === "number") shapeData.y = y;
             if (typeof width === "number") shapeData.width = width;
@@ -1112,7 +1100,9 @@ wss.on("connection", async (ws: WebSocket, request: any) => {
             if (typeof startY === "number") shapeData.startY = startY;
             if (typeof endX === "number") shapeData.endX = endX;
             if (typeof endY === "number") shapeData.endY = endY;
-
+            if (Array.isArray(points)) shapeData.points = points;
+            if (typeof size === "number") shapeData.size = size;
+            
             await prismaClient.shape.create({
               data: shapeData,
             });

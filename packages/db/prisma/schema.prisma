@@ -103,8 +103,9 @@ model Shape {
   startY    Int?
   endX      Int?
   endY      Int?
+  size      Int?
+  points    Json?     
   room      Room    @relation(fields: [roomId], references: [id])
   roomId    Int
-  
-
 }
+

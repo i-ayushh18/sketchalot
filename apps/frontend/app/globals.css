@@ -2,6 +2,8 @@
 
 @import "tw-animate-css";
 
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -43,6 +45,23 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
+:root {
+  --background: 322 100% 99%;
+  --foreground: 280 6% 10%;
+
+  --primary: 296 82% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 340 100% 76%;
+  --secondary-foreground: 0 0% 100%;
+
+  --card: 322 100% 99%;
+  --card-foreground: 280 6% 10%;
+
+  --muted: 280 10% 94%;
+  --muted-foreground: 280 6% 40%;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
