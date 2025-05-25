@@ -17,26 +17,3 @@ export function useSocket(){
         loading
     }
 }
-// export function useSocket() {
-//     const [socket, setSocket] = useState<WebSocket | null>(null);
-  
-//     useEffect(() => {
-//       const ws = new WebSocket(`${WS_URL}?token=...`);
-  
-//       ws.onopen = () => {
-//         console.log("🟢 WebSocket connected");
-//         setSocket(ws);
-//       };
-  
-//       ws.onerror = (e) => {
-//         console.error("WebSocket error:", e);
-//       };
-  
-//       return () => {
-//         ws.close();
-//       };
-//     }, []);
-  
-//     return { socket };
-//   }
-  
