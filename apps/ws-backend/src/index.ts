@@ -1,7 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { WebSocket, WebSocketServer } from "ws";
 import { randomBytes } from "crypto";  // Importing randomBytes for generating random room IDs
-
 const { JWT_SECRET } = require("@repo/backend-common/config");
 const { prismaClient } = require("@repo/db/client");
 
