@@ -9,8 +9,16 @@ const cors = require("cors");
 
 
 const app = express();
+
+
+const FRONTEND_URL = 'https://sketchalot.onrender.com';
 app.use(express.json());
-app.use(cors())
+app.use(
+    cors({
+      origin: FRONTEND_URL,
+      credentials: true, 
+    })
+  );
 
 app.post("/signup", async (req, res) => {
 
