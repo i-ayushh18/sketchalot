@@ -42,7 +42,7 @@ export function Canvas({
     return () => {
       g.destroy();
     };
-  }, [roomId, socket]);
+  }, [roomId, socket,user]);
 
   // Whenever selectedTool changes, update the Game
   useEffect(() => {

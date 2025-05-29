@@ -97,38 +97,41 @@ export async function getExistingShapes(roomSlug: string): Promise<Shape[]> {
 }
 
 // 3️⃣ Type‐guard that now accepts arrowright too
-function isValidShape(obj: any): obj is Shape {
-  if (typeof obj !== "object" || obj === null || typeof obj.type !== "string")
-    return false;
+function isValidShape(obj: unknown): obj is Shape {
+  if (typeof obj !== "object" || obj === null) return false;
 
-  switch (obj.type) {
+  const shape = obj as { [key: string]: unknown };
+
+  if (typeof shape.type !== "string") return false;
+
+  switch (shape.type) {
     case "rect":
       return (
-        typeof obj.x === "number" &&
-        typeof obj.y === "number" &&
-        typeof obj.width === "number" &&
-        typeof obj.height === "number"
+        typeof shape.x === "number" &&
+        typeof shape.y === "number" &&
+        typeof shape.width === "number" &&
+        typeof shape.height === "number"
       );
     case "circle":
       return (
-        typeof obj.centerX === "number" &&
-        typeof obj.centerY === "number" &&
-        typeof obj.radius === "number"
+        typeof shape.centerX === "number" &&
+        typeof shape.centerY === "number" &&
+        typeof shape.radius === "number"
       );
     case "pencil":
     case "slash":
-    case "arrowright":  // ← added here
+    case "arrowright":
       return (
-        typeof obj.startX === "number" &&
-        typeof obj.startY === "number" &&
-        typeof obj.endX === "number" &&
-        typeof obj.endY === "number"
+        typeof shape.startX === "number" &&
+        typeof shape.startY === "number" &&
+        typeof shape.endX === "number" &&
+        typeof shape.endY === "number"
       );
     case "eraser":
       return (
-        typeof obj.x === "number" &&
-        typeof obj.y === "number" &&
-        typeof obj.size === "number"
+        typeof shape.x === "number" &&
+        typeof shape.y === "number" &&
+        typeof shape.size === "number"
       );
     default:
       return false;

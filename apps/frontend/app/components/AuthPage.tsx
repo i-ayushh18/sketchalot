@@ -39,7 +39,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
       }
 
       // Navigate to canvas or dashboard
-    } catch (e) {
+    } catch {
       setError("Network error");
     }
   };

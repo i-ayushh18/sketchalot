@@ -40,7 +40,7 @@ export async function initDraw(
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
 
-  let existingShapes: Shape[] = await getExistingShapes(roomSlug);
+  const existingShapes: Shape[] = await getExistingShapes(roomSlug);
   redrawAll(existingShapes, canvas, ctx);
 
   let tool: Shape["type"] = "rect";

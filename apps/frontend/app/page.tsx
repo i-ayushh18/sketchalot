@@ -44,7 +44,7 @@ export default function App() {
       const res = await axios.post(`${HTTP_BACKEND}/room`);
       const { roomSlug } = res.data;
       router.push(`/canvas/${roomSlug}?guest=true`);
-    } catch (err) {
+    } catch {
       alert("Failed to create room.");
     }
   };

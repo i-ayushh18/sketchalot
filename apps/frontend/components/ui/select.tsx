@@ -1,15 +1,14 @@
-import * as React from "react";
+
 import {
-  Select as RadixSelect,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
+  Root as Select,
+  Trigger as SelectTrigger,
+  Value as SelectValue,
+  Content as SelectContent,
+  Item as SelectItem,
 } from "@radix-ui/react-select";
 
-import { cn } from "@/lib/utils"; // adjust if you're not using `cn` util
+// You can type `cn` like this if it's not typed
 
-const Select = RadixSelect;
 
 export {
   Select,

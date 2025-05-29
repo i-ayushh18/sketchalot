@@ -1,3 +1,4 @@
+"use client"
 import axios from "axios"
 import { BACKEND_URL } from "../app/config"
 import { ChatRoomClient } from "./ChatRoomClient";
