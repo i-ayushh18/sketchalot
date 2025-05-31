@@ -1,10 +1,15 @@
+require("dotenv").config();
+
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { WebSocket, WebSocketServer } from "ws";
 import { randomBytes } from "crypto";  // Importing randomBytes for generating random room IDs
 const { JWT_SECRET } = require("@repo/backend-common/config");
 const { prismaClient } = require("@repo/db/client");
 
-const wss = new WebSocketServer({ port: 8080 });
+const port = Number(process.env.PORT || 8080);
+const wss = new WebSocketServer({ port });
+console.log(`✅ WebSocket server running on port ${port}`);
+
 
 interface User {
   ws: WebSocket;
