@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import {randomBytes} from "crypto"
 const express = require("express");
 const jwt = require("jsonwebtoken");

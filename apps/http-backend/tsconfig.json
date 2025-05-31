@@ -1,15 +1,15 @@
 {
-    "extends": "@repo/typescript-config/base.json",
-    "compilerOptions": {
-      "rootDir": "./src",
-      "outDir": "./dist",
-      "declaration": true,
-      "module": "NodeNext",
-      "moduleResolution": "NodeNext",
-      "esModuleInterop": true,
-      "strict": false,
-      "skipLibCheck": true
-    },
-    
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "declaration": true,
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }
-  
