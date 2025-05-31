@@ -172,7 +172,7 @@ app.post("/chats/:roomId", middleware, async (req, res) => {
             connect: { id: roomId },
           },
           user: {
-            connect: { id: userId }, // ✅ Required
+            connect: { id: userId }, 
           },
         },
       });
@@ -255,4 +255,7 @@ app.post("/room/:slug", async (req, res) => {
 });
 
 
-app.listen(4000);//change
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`HTTP Backend running on port ${PORT}`);
+});
