@@ -219,6 +219,9 @@ importers:
       '@repo/backend-common':
         specifier: workspace:*
         version: link:../../packages/backend-common
+      '@types/node':
+        specifier: ^22.15.29
+        version: 22.15.29
 
   packages/backend-common:
     dependencies:
@@ -4777,7 +4780,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.0.6':
     dependencies:
-      '@types/node': 22.13.10
+      '@types/node': 22.15.29
       '@types/qs': 6.9.18
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -4798,7 +4801,7 @@ snapshots:
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 22.13.10
+      '@types/node': 22.15.29
 
   '@types/http-errors@2.0.4': {}
 
@@ -4859,7 +4862,7 @@ snapshots:
 
   '@types/through@0.0.33':
     dependencies:
-      '@types/node': 22.13.10
+      '@types/node': 22.15.29
 
   '@types/tinycolor2@1.4.6': {}
 

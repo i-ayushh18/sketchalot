@@ -14,16 +14,16 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@repo/db": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "ws": "^8.18.1",
-    "@repo/db":"workspace:*"
+    "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@repo/backend-common":"workspace:*"
-    
+    "@repo/backend-common": "workspace:*",
+    "@types/node": "^22.15.29"
   }
 }
