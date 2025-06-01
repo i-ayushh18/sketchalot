@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@repo/backend-common": "workspace:*",
-    "@types/node": "^22.15.29"
+    "@types/node": "^22.15.29",
+    "@types/ws": "^8.18.1"
   }
 }
