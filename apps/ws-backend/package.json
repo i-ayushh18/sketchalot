@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "prisma generate && tsc -b",
+    "build": "prisma generate --schema=../../packages/db/prisma/schema.prisma && tsc -b",
     "start": "node ./dist/index.js",
     "dev": "ts-node src/index.ts"
   },
