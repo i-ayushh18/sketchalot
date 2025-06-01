@@ -14,6 +14,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@prisma/client": "6.5.0",
     "@repo/db": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/express": "^5.0.1",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@repo/backend-common": "workspace:*",
     "@types/node": "^22.15.29",
-    "@types/ws": "^8.18.1"
+    "@types/ws": "^8.18.1",
+    "prisma": "^6.5.0"
   }
 }
