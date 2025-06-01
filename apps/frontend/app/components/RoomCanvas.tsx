@@ -70,9 +70,11 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
     };
   }, [roomId]);
 
+  
   if (!socket) {
     return <div>Connecting to server....</div>;
   }
+  
 
   return (
     <div>
