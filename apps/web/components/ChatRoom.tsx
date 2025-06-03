@@ -1,24 +1,26 @@
-"use client"
-import axios from "axios"
-import { BACKEND_URL } from "../app/config"
+"use client";
+
+import { useEffect, useState } from "react";
 import { ChatRoomClient } from "./ChatRoomClient";
 import { useSocket } from "../hooks/useSocket";
-import { useState,useEffect } from "react";
+import axios from "axios";
+import { BACKEND_URL } from "../app/config";
 
-async function getChats(roomId: string) {
-    const response = await axios.get(`${BACKEND_URL}/chats/${roomId}`);
-    return response.data.messages;
-}
-
-export async function ChatRoom({id}: {
-    id: string
-}) {
-    const { socket, loading } = useSocket();
-
+export function ChatRoom({ id }: { id: string }) {
+  const { socket, loading } = useSocket();
   const [messages, setMessages] = useState<{ message: string }[]>([]);
 
   useEffect(() => {
-    getChats(id).then(setMessages);
+    const fetchChats = async () => {
+      try {
+        const response = await axios.get(`${BACKEND_URL}/chats/${id}`);
+        setMessages(response.data.messages);
+      } catch (error) {
+        console.error("Failed to fetch chats", error);
+      }
+    };
+
+    fetchChats();
   }, [id]);
 
   if (loading || !socket) return <div>Loading chat...</div>;

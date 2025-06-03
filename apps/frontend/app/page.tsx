@@ -39,15 +39,25 @@ export default function App() {
   const router = useRouter();
   const [joinSlug, setJoinSlug] = useState("");
 
-  const createRoom = async () => {
-    try {
-      const res = await axios.post(`${HTTP_BACKEND}/room`);
-      const { roomSlug } = res.data;
-      router.push(`/canvas/${roomSlug}?guest=true`);
-    } catch {
-      alert("Failed to create room.");
+const createRoom = async () => {
+  try {
+    const response = await fetch(`${HTTP_BACKEND}/room`, {
+      method: "POST",
+    });
+    const data = await response.json();
+    console.log("Fetch room creation response:", data);
+    if (!data.roomSlug) {
+      alert("Room creation failed: no roomSlug received");
+      return;
     }
-  };
+    router.push(`/canvas/${data.roomSlug}?guest=true`);
+  } catch (error) {
+    console.error("Create room fetch error:", error);
+    alert("Failed to create room.");
+  }
+};
+
+
 
   const joinRoom = () => {
     const slug = joinSlug.trim();
