@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+
 import { HTTP_BACKEND } from "@/config";
 import Link from "next/link";
 // Fonts
