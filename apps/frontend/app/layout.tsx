@@ -22,6 +22,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+    <link rel="icon" type="image/png" href="/favicon.png" />
       <body className={`${poppins.variable} ${lobster.variable} font-sans`}>
         {children}
       </body>
