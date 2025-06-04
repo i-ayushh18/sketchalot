@@ -143,7 +143,7 @@ const createRoom = async () => {
           </div>
 
           {/* Sign In / Sign Up */}
-          <div className="flex justify-center mt-4">
+          {/* <div className="flex justify-center mt-4">
             <Card className="bg-white/90 backdrop-blur-md px-6 py-4 border border-indigo-200 shadow-md flex flex-row items-center gap-6">
             <Link href='/signin'>
               <Button
@@ -163,7 +163,7 @@ const createRoom = async () => {
               </Button>
               </Link>
             </Card>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
