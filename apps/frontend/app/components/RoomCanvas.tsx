@@ -1,85 +1,59 @@
-// // "use client";
-
-// import { useState, useEffect } from "react";
-// import { initDraw } from "../draw";
-// import { WS_URL } from "@/config";
-
-// export function RoomCanvas({ roomId }: { roomId: string }) {
-//   const [socket, setSocket] = useState<WebSocket | null>(null);
-//   const [isConnected, setIsConnected] = useState(false);
-
-//   useEffect(() => {
-//     const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhZGNiZTNhYy0yMzI3LTQ2NzUtYjBhMS05MzkxM2E5YzhmMmQiLCJpYXQiOjE3NDM3NjkyMDF9.mTgnM70Y1iP-qPiq6fi_3Bqum1xGaSAoTJYeu78VjQY"; // Replace with actual token
-
-//     const ws = new WebSocket(`${WS_URL}?token=${token}`);
-
-//     ws.onopen = () => {
-//       console.log("WebSocket connected");
-//       setSocket(ws);
-//       setIsConnected(true);
-
-//       const joinMessage = JSON.stringify({
-//         type: "join_room",
-//         roomId,
-//       });
-//       ws.send(joinMessage); // Send the join room message
-//     };
-
-//     ws.onerror = (err) => {
-//       console.error("WebSocket error:", err);
-//     };
-
-//     ws.onclose = () => {
-//       console.warn("WebSocket connection closed");
-//       setIsConnected(false);
-//     };
-
-//     return () => {
-//       ws.close(); // Clean up WebSocket connection when the component unmounts
-//     };
-//   }, [roomId]);
-
-//   if (!isConnected) {
-//     return <div>Connecting to WebSocket...</div>;
-//   }
-
-//   return <div>WebSocket Connected! Proceeding with Canvas...</div>;
-// }
 "use client";
 
-import { WS_URL } from "@/config";
 import { useEffect, useState } from "react";
+import { WS_URL } from "@/config";
 import { Canvas } from "./Canvas";
 
 export function RoomCanvas({ roomId }: { roomId: string }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket(
-      `${WS_URL}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTdmNTJmZC04Y2FiLTRjNTQtYTFhZC1lOGM2YjkyOTk1MjgiLCJpYXQiOjE3NDg4ODMzNjV9.ISEGnH909j6pX7RaPVYbPmJ_mFBoRxbak7FXNWLfshE`
-    );
+    if (!roomId) return;
+
+    const url = WS_URL.startsWith("http")
+      ? WS_URL.replace(/^http/, "ws")
+      : WS_URL;
+
+    const token =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTdmNTJmZC04Y2FiLTRjNTQtYTFhZC1lOGM2YjkyOTk1MjgiLCJpYXQiOjE3NDg4ODMzNjV9.ISEGnH909j6pX7RaPVYbPmJ_mFBoRxbak7FXNWLfshE";
+
+    const ws = new WebSocket(`${url}?token=${token}`);
+    setSocket(ws);
 
     ws.onopen = () => {
-      setSocket(ws);
-      const data = JSON.stringify({
+      console.log("✅ WebSocket connected");
+
+      const joinPayload = JSON.stringify({
         type: "join_room",
         roomSlug: roomId,
       });
-      console.log(data);
-      ws.send(data);
+
+      ws.send(joinPayload);
+      setConnected(true);
+    };
+
+    ws.onerror = (err) => {
+      console.error("❌ WebSocket error:", err);
+    };
+
+    ws.onclose = () => {
+      console.warn("⚠️ WebSocket closed");
+      setConnected(false);
+    };
+
+    return () => {
+      ws.close();
     };
   }, [roomId]);
 
-  
-  if (!socket) {
-    return <div>Connecting to server....</div>;
+  if (!connected || !socket) {
+    return <div>Connecting to WebSocket...</div>;
   }
-  
 
   return (
     <div>
-      {/* This Canvas will show roomId visibly on UI */}
-      <Canvas roomId={roomId} socket={socket} user={""} />
+      <Canvas roomId={roomId} socket={socket} user="" />
     </div>
   );
 }
