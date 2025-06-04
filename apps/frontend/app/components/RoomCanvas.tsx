@@ -15,10 +15,8 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
       ? WS_URL.replace(/^http/, "ws")
       : WS_URL;
 
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTdmNTJmZC04Y2FiLTRjNTQtYTFhZC1lOGM2YjkyOTk1MjgiLCJpYXQiOjE3NDg4ODMzNjV9.ISEGnH909j6pX7RaPVYbPmJ_mFBoRxbak7FXNWLfshE";
-
-    const ws = new WebSocket(`${url}?token=${token}`);
+    
+    const ws = new WebSocket(`${url}`);
     setSocket(ws);
 
     ws.onopen = () => {
