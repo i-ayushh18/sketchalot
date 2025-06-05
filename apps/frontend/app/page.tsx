@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { HTTP_BACKEND } from "@/config";
-import Link from "next/link";
-// Fonts
+
+
 import { Poppins, Lobster } from "next/font/google";
 
 // Components
