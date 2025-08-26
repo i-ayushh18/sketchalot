@@ -1,517 +1,328 @@
-// require("dotenv").config();
-
-// import jwt, { JwtPayload } from "jsonwebtoken";
-// import { WebSocket, WebSocketServer } from "ws";
-// import { randomBytes } from "crypto";  // Importing randomBytes for generating random room IDs
-// const { JWT_SECRET } = require("@repo/backend-common/config");
-// const { prismaClient } = require("@repo/db/client");
-
-// const port = Number(process.env.PORT || 8080);
-// const wss = new WebSocketServer({ port });
-// console.log(`✅ WebSocket server running on port ${port}`);
-
-
-// interface User {
-//   ws: WebSocket;
-//   rooms: string[];  // List of rooms the user is part of
-//   userId: string;
-// }
-
-// interface Room {
-//   slug: string;  // Unique room ID
-//   users: string[];  // List of userIds in the room
-// }
-
-// let users: User[] = [];
-// let rooms: Room[] = [];  // Store all rooms and their users
-
-// // Function to generate a random room slug (ID)
-// function generateRoomSlug(): string {
-//   return randomBytes(8).toString("hex");  // Generates an 8-byte hex string
-// }
-
-// function checkUser(token: string): string | null {
-//   try {
-//     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-//     return decoded?.userId || null;
-//   } catch (e: any) {
-//     console.error("JWT verification failed:", e.message);
-//     return null;
-//   }
-// }
-// interface IncomingMessage {
-//   type: "create_room" | "join_room" | "leave_room" | "chat" | "shape";  // Add the possible types of messages
-//   roomSlug?: string;  // For join, leave, chat, and shape messages
-//   message?: string;   // For chat messages
-//   shape?: ShapeData;  // For shape messages
-// }
-
-// // Define the structure of shape data for the "shape" message type
-// interface ShapeData {
-//   type: "rect" | "circle" | "slash" | "pencil" | "arrowright" | "eraser";
-//   x?: number;
-//   y?: number;
-//   width?: number;
-//   height?: number;
-//   radius?: number;
-//   centerX?: number;
-//   centerY?: number;
-//   startX?: number;
-//   startY?: number;
-//   endX?: number;
-//   endY?: number;
-//   points?: { x: number; y: number }[]; // For pencil tool
-//   size?: number; // For eraser thickness
-// }
-
-
-// wss.on("connection", async (ws: WebSocket, request: any) => {
-//   const url = request?.url || "";
-//   const queryParams = new URLSearchParams(url.split("?")[1]);
-//   const token = queryParams.get("token") || "";
-//   const userId = checkUser(token);
-
-//   if (!userId) {
-//     console.log("❌ Invalid token");
-//     ws.close(1008, "Invalid Token");
-//     return;
-//   }
-
-//   users = users.filter((u) => u.userId !== userId || u.ws !== ws); // dedupe
-//   const user: User = { ws, rooms: [], userId };
-//   users.push(user);
-//   console.log(`✅ User ${userId} connected`);
-
-//   ws.on("message", async (data: string | Buffer | ArrayBuffer | Buffer[]) => {
-//     try {
-//       let jsonString: string;
-
-//       if (typeof data === "string") {
-//         jsonString = data;
-//       } else if (Buffer.isBuffer(data)) {
-//         jsonString = data.toString("utf-8");
-//       } else if (data instanceof ArrayBuffer) {
-//         jsonString = Buffer.from(data).toString("utf-8");
-//       } else if (Array.isArray(data)) {
-//         jsonString = Buffer.concat(data).toString("utf-8");
-//       } else {
-//         console.error("❌ Unsupported data type received:", typeof data);
-//         return;
-//       }
-
-//       console.log("📦 Received JSON string:", jsonString);
-
-//       const parsedData = JSON.parse(jsonString) as IncomingMessage;
-//       console.log("✅ Parsed JSON:", parsedData);
-
-//       // Ensure roomSlug is always a valid string
-//       if (parsedData.roomSlug && typeof parsedData.roomSlug !== "string") {
-//         console.error("❌ Invalid roomSlug type");
-//         return;
-//       }
-
-//       const { type, roomSlug, message, shape } = parsedData;
-
-//       switch (type) {
-//         case "join_room": {
-//           if (!roomSlug) {
-//             console.error("❌ Missing roomSlug for join_room");
-//             return;
-//           }
-
-//           if (!user.rooms.includes(roomSlug)) {
-//             user.rooms.push(roomSlug);
-//             console.log(`📥 ${userId} joined ${roomSlug}`);
-//           }
-//           break;
-//         }
-
-//         case "leave_room": {
-//           if (!roomSlug) {
-//             console.error("❌ Missing roomSlug for leave_room");
-//             return;
-//           }
-
-//           user.rooms = user.rooms.filter((slug) => slug !== roomSlug);
-//           console.log(`📤 ${userId} left ${roomSlug}`);
-//           break;
-//         }
-
-//         case "chat": {
-//           const roomSlug = parsedData.roomSlug;
-//           if (!roomSlug || typeof roomSlug !== "string") {
-//             console.error("❌ Invalid or missing roomSlug");
-//             return;
-//           }
-//           if (typeof message !== "string" || !message.trim()) {
-//             console.log("❌ Invalid chat message");
-//             return;
-//           }
-//           const room = await prismaClient.room.findUnique({
-//             where: { slug: roomSlug },
-//           });
-
-//           if (!room) {
-//             console.log(`❌ Room not found: ${roomSlug}`);
-//             return;
-//           }
-
-//           const chat = await prismaClient.chat.create({
-//             data: {
-//               message,
-//               roomId: room.id,
-//               userId,
-//             },
-//           });
-
-//           broadcastToRoom(roomSlug, {
-//             type: "chat",
-//             message: chat.message,
-//             roomSlug,
-//             sender: userId,
-//           });
-//           break;
-//         }
-
-//         case "shape": {
-//           const roomSlug = parsedData.roomSlug;
-//           if (!roomSlug || typeof roomSlug !== "string") {
-//             console.error("❌ Invalid or missing roomSlug");
-//             return;
-//           }
-        
-//           if (!shape?.type) {
-//             console.log("❌ Invalid shape: missing type");
-//             return;
-//           }
-        
-//           // 🔁 Normalize incoming shape types
-//           const aliasMap: Record<string, ShapeData["type"]> = {
-//             rect: "rect",
-//             slash: "slash",
-//             arrowright:"arrowright",  
-//             pencil: "pencil",
-//             circle: "circle",
-//             eraser:"eraser"
-//           };
-        
-//           const rawType = shape.type;
-//           const normalizedType = aliasMap[rawType];
-        
-//           if (!normalizedType) {
-//             console.error("❌ Unknown shape type:", rawType);
-//             ws.send(
-//               JSON.stringify({
-//                 type: "error",
-//                 message: `Unknown shape type: ${rawType}`,
-//               })
-//             );
-//             return;
-//           }
-        
-//           const room = await prismaClient.room.findUnique({
-//             where: { slug: roomSlug },
-//           });
-        
-//           if (!room) {
-//             console.error("❌ Room not found");
-//             return;
-//           }
-        
-//           try {
-//             console.log("📐 Incoming shape data:", shape);
-        
-//             const {
-//               x, y, width, height, radius, centerX, centerY,
-//               startX, startY, endX, endY, points, size
-//             } = shape;
-            
-//             const shapeData: any = {
-//               type: normalizedType,
-//               room: { connect: { id: room.id } },
-//             };
-            
-//             if (typeof x === "number") shapeData.x = x;
-//             if (typeof y === "number") shapeData.y = y;
-//             if (typeof width === "number") shapeData.width = width;
-//             if (typeof height === "number") shapeData.height = height;
-//             if (typeof radius === "number") shapeData.radius = radius;
-//             if (typeof centerX === "number") shapeData.centerX = centerX;
-//             if (typeof centerY === "number") shapeData.centerY = centerY;
-//             if (typeof startX === "number") shapeData.startX = startX;
-//             if (typeof startY === "number") shapeData.startY = startY;
-//             if (typeof endX === "number") shapeData.endX = endX;
-//             if (typeof endY === "number") shapeData.endY = endY;
-//             if (Array.isArray(points)) shapeData.points = points;
-//             if (typeof size === "number") shapeData.size = size;
-            
-//             await prismaClient.shape.create({
-//               data: shapeData,
-//             });
-        
-//             console.log("✅ Shape created successfully");
-        
-//             broadcastToRoom(roomSlug, {
-//               type: "shape",
-//               shape: { ...shape, type: normalizedType }, // Send normalized type to clients too
-//               roomSlug,
-//               sender: userId,
-//             });
-//           } catch (e) {
-//             console.error("❌ Failed to create shape:", e);
-//             ws.send(
-//               JSON.stringify({
-//                 type: "error",
-//                 message: "Failed to create shape",
-//               })
-//             );
-//           }
-//           break;
-//         }
-        
-
-//         default:
-//           console.log("⚠️ Unknown message type:", (parsedData as any).type);
-//           ws.send(
-//             JSON.stringify({
-//               type: "error",
-//               message: `Unknown message type: ${(parsedData as any).type}`,
-//             })
-//           );
-//       }
-//     } catch (e) {
-//       console.error("❌ JSON parse error:", e);
-//     }
-//   });
-
-//   ws.on("close", () => {
-//     users = users.filter((u) => u.ws !== ws);
-//     console.log(`❌ ${userId} disconnected`);
-//   });
-// });
-
-
-// function broadcastToRoom(roomSlug: string, message: any, excludeUserId?: string) {
-//   users.forEach((user) => {
-//     if (user.rooms.includes(roomSlug) && user.userId !== excludeUserId) {
-//       try {
-//         user.ws.send(JSON.stringify(message));
-//       } catch (err) {
-//         console.error(`Failed to send to user ${user.userId}:`, err);
-//       }
-//     }
-//   });
-// }
 require("dotenv").config();
 
-import { WebSocket, WebSocketServer } from "ws";
-import { randomBytes, randomUUID } from "crypto";
-const { prismaClient } = require("@repo/db/client");
+const { WebSocketServer } = require("ws");
+const { randomUUID } = require("crypto");
 
 const port = Number(process.env.PORT || 8080);
 const wss = new WebSocketServer({ port });
+
 console.log(`✅ WebSocket server running on port ${port}`);
 
+// Enhanced type definitions
 interface User {
-  ws: WebSocket;
-  rooms: string[];
-  userId: string;
+  ws: any; // WebSocket instance
+  rooms: Set<string>;
+  username?: string;
 }
 
 interface Room {
-  slug: string;
-  users: string[];
+  users: Set<string>;
+  shapes: any[];
+  messages: any[];
+  userCount: number;
 }
 
-let users: User[] = [];
-let rooms: Room[] = [];
-
-function generateRoomSlug(): string {
-  return randomBytes(8).toString("hex");
-}
-
-interface IncomingMessage {
-  type: "create_room" | "join_room" | "leave_room" | "chat" | "shape";
+interface WebSocketMessage {
+  type: string;
   roomSlug?: string;
-  message?: string;
-  shape?: ShapeData;
+  user?: string;
+  [key: string]: any;
 }
 
-interface ShapeData {
-  type: "rect" | "circle" | "slash" | "pencil" | "arrowright" | "eraser";
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  radius?: number;
-  centerX?: number;
-  centerY?: number;
-  startX?: number;
-  startY?: number;
-  endX?: number;
-  endY?: number;
-  points?: { x: number; y: number }[];
-  size?: number;
+interface ShapeMessage {
+  type: "shape";
+  shape: any;
+  roomSlug: string;
 }
 
-wss.on("connection", async (ws: WebSocket, request: any) => {
-  // No token check — assign guest ID
-  const guestId = randomUUID();
+interface ChatMessage {
+  type: "chat";
+  message: string;
+  roomSlug: string;
+}
 
-  users = users.filter((u) => u.userId !== guestId || u.ws !== ws);
-  const user: User = { ws, rooms: [], userId: guestId };
-  users.push(user);
-  console.log(`✅ Guest user ${guestId} connected`);
+interface JoinMessage {
+  type: "join" | "join_room";
+  roomSlug: string;
+  user?: string;
+}
 
-  ws.on("message", async (data: string | Buffer | ArrayBuffer | Buffer[]) => {
-    try {
-      let jsonString: string;
+// In-memory storage - much faster than database
+const rooms = new Map<string, Room>(); // roomSlug -> Room
+const users = new Map<string, User>(); // userId -> User
 
-      if (typeof data === "string") {
-        jsonString = data;
-      } else if (Buffer.isBuffer(data)) {
-        jsonString = data.toString("utf-8");
-      } else if (data instanceof ArrayBuffer) {
-        jsonString = Buffer.from(data).toString("utf-8");
-      } else if (Array.isArray(data)) {
-        jsonString = Buffer.concat(data).toString("utf-8");
-      } else {
-        console.error("❌ Unsupported data type received:", typeof data);
-        return;
+// Clean up disconnected users every 5 minutes
+setInterval(() => {
+  for (const [userId, user] of users.entries()) {
+    if (user.ws.readyState !== 1) { // 1 = OPEN
+      // Remove user from all rooms
+      for (const roomSlug of user.rooms) {
+        const room = rooms.get(roomSlug);
+        if (room) {
+          room.users.delete(userId);
+          room.userCount = room.users.size;
+          if (room.users.size === 0) {
+            rooms.delete(roomSlug); // Clean up empty rooms
+          }
+        }
       }
+      users.delete(userId);
+    }
+  }
+}, 5 * 60 * 1000);
 
-      console.log("📦 Received JSON string:", jsonString);
-      const parsedData = JSON.parse(jsonString) as IncomingMessage;
-      console.log("✅ Parsed JSON:", parsedData);
+wss.on("connection", (ws: any, request: any) => {
+  const userId = randomUUID();
+  const user: User = { ws, rooms: new Set() };
+  users.set(userId, user);
+  
+  console.log(`✅ User ${userId} connected`);
 
-      const { type, roomSlug, message, shape } = parsedData;
+  ws.on("message", (data: any) => {
+    try {
+      const message: WebSocketMessage = JSON.parse(data.toString());
+      const { type, roomSlug, ...payload } = message;
 
       switch (type) {
+        case "join":
         case "join_room": {
           if (!roomSlug) return;
-          if (!user.rooms.includes(roomSlug)) {
-            user.rooms.push(roomSlug);
-            console.log(`📥 ${user.userId} joined ${roomSlug}`);
+          
+          // Create room if it doesn't exist
+          if (!rooms.has(roomSlug)) {
+            rooms.set(roomSlug, {
+              users: new Set(),
+              shapes: [],
+              messages: [],
+              userCount: 0
+            });
+          }
+          
+          const room = rooms.get(roomSlug);
+          if (room) {
+            room.users.add(userId);
+            room.userCount = room.users.size;
+            user.rooms.add(roomSlug);
+            
+            // Set username if provided
+            if (payload.user) {
+              user.username = payload.user;
+            }
+            
+            // Send existing shapes and messages to the new user
+            ws.send(JSON.stringify({
+              type: "room_data",
+              roomSlug,
+              shapes: room.shapes,
+              messages: room.messages,
+              userCount: room.userCount
+            }));
+            
+            // Notify others in the room
+            broadcastToRoom(roomSlug, {
+              type: "user_joined",
+              userId,
+              username: user.username || `User-${userId.slice(0, 8)}`,
+              roomSlug,
+              userCount: room.userCount
+            }, userId);
+            
+            console.log(`📥 User ${user.username || userId} joined room ${roomSlug} (${room.userCount} users)`);
           }
           break;
         }
 
         case "leave_room": {
           if (!roomSlug) return;
-          user.rooms = user.rooms.filter((slug) => slug !== roomSlug);
-          console.log(`📤 ${user.userId} left ${roomSlug}`);
-          break;
-        }
-
-        case "chat": {
-          if (!roomSlug || typeof message !== "string" || !message.trim()) return;
-
-          const room = await prismaClient.room.findUnique({ where: { slug: roomSlug } });
-          if (!room) return;
-
-          const chat = await prismaClient.chat.create({
-            data: {
-              message,
-              roomId: room.id,
-              userId: user.userId,
-            },
-          });
-
-          broadcastToRoom(roomSlug, {
-            type: "chat",
-            message: chat.message,
-            roomSlug,
-            sender: user.userId,
-          });
+          
+          const room = rooms.get(roomSlug);
+          if (room) {
+            room.users.delete(userId);
+            room.userCount = room.users.size;
+            user.rooms.delete(roomSlug);
+            
+            // Clean up empty rooms
+            if (room.users.size === 0) {
+              rooms.delete(roomSlug);
+            } else {
+              // Notify others
+              broadcastToRoom(roomSlug, {
+                type: "user_left",
+                userId,
+                username: user.username || `User-${userId.slice(0, 8)}`,
+                roomSlug,
+                userCount: room.userCount
+              }, userId);
+            }
+          }
+          
+          console.log(`📤 User ${user.username || userId} left room ${roomSlug}`);
           break;
         }
 
         case "shape": {
-          if (!roomSlug || !shape?.type) return;
+          if (!roomSlug || !payload.shape) return;
 
-          const aliasMap: Record<string, ShapeData["type"]> = {
-            rect: "rect",
-            slash: "slash",
-            arrowright: "arrowright",
-            pencil: "pencil",
-            circle: "circle",
-            eraser: "eraser",
-          };
-
-          const rawType = shape.type;
-          const normalizedType = aliasMap[rawType];
-
-          if (!normalizedType) {
-            ws.send(JSON.stringify({
-              type: "error",
-              message: `Unknown shape type: ${rawType}`,
-            }));
-            return;
-          }
-
-          const room = await prismaClient.room.findUnique({ where: { slug: roomSlug } });
+          const room = rooms.get(roomSlug);
           if (!room) return;
 
-          const {
-            x, y, width, height, radius, centerX, centerY,
-            startX, startY, endX, endY, points, size
-          } = shape;
-
-          const shapeData: any = {
-            type: normalizedType,
-            room: { connect: { id: room.id } },
+          // Add shape to room
+          const shapeWithId = {
+            ...payload.shape,
+            id: randomUUID(),
+            userId,
+            username: user.username || `User-${userId.slice(0, 8)}`,
+            timestamp: Date.now()
           };
-
-          if (typeof x === "number") shapeData.x = x;
-          if (typeof y === "number") shapeData.y = y;
-          if (typeof width === "number") shapeData.width = width;
-          if (typeof height === "number") shapeData.height = height;
-          if (typeof radius === "number") shapeData.radius = radius;
-          if (typeof centerX === "number") shapeData.centerX = centerX;
-          if (typeof centerY === "number") shapeData.centerY = centerY;
-          if (typeof startX === "number") shapeData.startX = startX;
-          if (typeof startY === "number") shapeData.startY = startY;
-          if (typeof endX === "number") shapeData.endX = endX;
-          if (typeof endY === "number") shapeData.endY = endY;
-          if (Array.isArray(points)) shapeData.points = points;
-          if (typeof size === "number") shapeData.size = size;
-
-          await prismaClient.shape.create({ data: shapeData });
-
+          
+          room.shapes.push(shapeWithId);
+          
+          // Keep only last 1000 shapes to prevent memory issues
+          if (room.shapes.length > 1000) {
+            room.shapes = room.shapes.slice(-1000);
+          }
+          
+          // Broadcast to all users in the room
           broadcastToRoom(roomSlug, {
             type: "shape",
-            shape: { ...shape, type: normalizedType },
-            roomSlug,
-            sender: user.userId,
+            shape: shapeWithId,
+            roomSlug
           });
+          
+          console.log(`📐 Shape added to room ${roomSlug} by ${user.username || userId}`);
+          break;
+        }
+
+        case "chat": {
+          if (!roomSlug || !payload.message) return;
+          
+          const room = rooms.get(roomSlug);
+          if (!room) return;
+          
+          // Add message to room
+          const messageWithId = {
+            id: randomUUID(),
+            text: payload.message,
+            userId,
+            username: user.username || `User-${userId.slice(0, 8)}`,
+            timestamp: Date.now()
+          };
+          
+          room.messages.push(messageWithId);
+          
+          // Keep only last 100 messages
+          if (room.messages.length > 100) {
+            room.messages = room.messages.slice(-100);
+          }
+          
+          // Broadcast to all users in the room
+          broadcastToRoom(roomSlug, {
+            type: "chat",
+            message: messageWithId,
+            roomSlug
+          });
+          
+          console.log(`💬 Chat message in room ${roomSlug} by ${user.username || userId}: ${payload.message}`);
+          break;
+        }
+
+        case "clear_canvas": {
+          if (!roomSlug) return;
+          
+          const room = rooms.get(roomSlug);
+          if (room) {
+            room.shapes = []; // Clear all shapes
+            
+            // Notify all users in the room
+          broadcastToRoom(roomSlug, {
+              type: "canvas_cleared",
+            roomSlug,
+              clearedBy: user.username || `User-${userId.slice(0, 8)}`
+            });
+          }
+          break;
+        }
+
+        case "ping": {
+          // Simple ping-pong for connection health
+          ws.send(JSON.stringify({ type: "pong" }));
           break;
         }
 
         default:
+          console.log(`⚠️ Unknown message type: ${type}`);
+      }
+    } catch (error) {
+      console.error("❌ Error processing message:", error);
           ws.send(JSON.stringify({
             type: "error",
-            message: `Unknown message type: ${(parsedData as any).type}`,
+        message: "Invalid message format"
           }));
-      }
-    } catch (e) {
-      console.error("❌ Error handling message:", e);
     }
   });
 
   ws.on("close", () => {
-    users = users.filter((u) => u.ws !== ws);
-    console.log(`❌ Guest user ${user.userId} disconnected`);
-  });
-});
-
-function broadcastToRoom(roomSlug: string, message: any, excludeUserId?: string) {
-  users.forEach((user) => {
-    if (user.rooms.includes(roomSlug) && user.userId !== excludeUserId) {
-      try {
-        user.ws.send(JSON.stringify(message));
-      } catch (err) {
-        console.error(`❌ Failed to send to user ${user.userId}:`, err);
+    // Remove user from all rooms
+    for (const roomSlug of user.rooms) {
+      const room = rooms.get(roomSlug);
+      if (room) {
+        room.users.delete(userId);
+        room.userCount = room.users.size;
+        if (room.users.size === 0) {
+          rooms.delete(roomSlug);
+        } else {
+          broadcastToRoom(roomSlug, {
+            type: "user_left",
+            userId,
+            username: user.username || `User-${userId.slice(0, 8)}`,
+            roomSlug,
+            userCount: room.userCount
+          });
+        }
       }
     }
+    
+    users.delete(userId);
+    console.log(`❌ User ${user.username || userId} disconnected`);
   });
+
+  // Send welcome message
+  ws.send(JSON.stringify({
+    type: "connected",
+    userId
+  }));
+});
+
+function broadcastToRoom(roomSlug: string, message: any, excludeUserId: string | null = null): void {
+  const room = rooms.get(roomSlug);
+  if (!room) return;
+  
+  for (const userId of room.users) {
+    if (userId === excludeUserId) continue;
+    
+    const user = users.get(userId);
+    if (user && user.ws.readyState === 1) { // 1 = OPEN
+      try {
+        user.ws.send(JSON.stringify(message));
+      } catch (error) {
+        console.error(`❌ Failed to send to user ${userId}:`, error);
+      }
+    }
+  }
 }
+
+// Health check endpoint
+const http = require("http");
+const server = http.createServer((req: any, res: any) => {
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({
+    status: "healthy",
+    rooms: rooms.size,
+    users: users.size,
+    uptime: process.uptime()
+  }));
+});
+
+server.listen(port + 1, () => {
+  console.log(`🏥 Health check server running on port ${port + 1}`);
+});
