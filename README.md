@@ -1,134 +1,52 @@
+# 🎨 Sketchalot - Collaborative Sketch Board
 
-![WebSocket Whiteboard](./assets/Thumbnail.png)
+A real-time collaborative drawing application built with Next.js, WebSockets, and modern web technologies. Create and join drawing rooms to collaborate with others in real-time!
 
-> **Real-time collaborative canvas ** powered by **WebSockets**, **Next.js**, and **Prisma**. Designed for seamless multi-user interaction with persistent drawing and messaging capabilities.
+## 🚀 Quick Start
 
----
-
-## 🚀 Features
-
-- 🎨 **Live Drawing Tools**: Rectangle, Circle, Pencil, Eraser, Arrows, Slash.
-- 🧑‍🤝‍🧑 **Room-based Collaboration**: Join specific rooms and collaborate in real time.
-- 🔒 **Stateless Authentication (Optional)**: Token support for future secure sessions.
-- 🗃️ **Persistent Storage**: All messages and shapes are stored using **Prisma** with a **PostgreSQL** database.
-- ⚡ **WebSocket Powered**: Instant updates via a highly responsive WebSocket backend.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer       | Stack                                      |
-|-------------|--------------------------------------------|
-| **Frontend**| `Next.js (App Router)` + `TailwindCSS`     |
-| **Backend** | `Node.js` + `Express` + `ws (WebSocket)`   |
-| **Database**| `PostgreSQL` with `Prisma ORM`             |
-| **Infra**   | Monorepo-based setup using Turborepo       |
-| **Auth**    | JWT (optional, currently disabled for ease)|
-
----
-
-## 🧠 Architecture Overview
-
-![Architecture Diagram](./assets/Architecture.png)
-
----
-
-## 📦 Installation
-
-### 1. Clone the Monorepo
-
+### 1. Clone and run with Docker
 ```bash
-git clone https://github.com/i-ayushh18/sketchalot.git
-
+git clone <repository-url>
+cd sketchalot
+docker build -t sketchalot .
+docker run -p 3000:3000 -p 3001:3001 -p 8080:8080 -p 8081:8081 sketchalot
 ```
 
-### 2. Install Dependencies
+### 2. Access the app
+- **Frontend**: http://localhost:3000
+- **HTTP Backend**: http://localhost:3001  
+- **WebSocket Backend**: ws://localhost:8080
+
+### 3. Start drawing!
+1. Open http://localhost:3000
+2. Enter your name to join
+3. Create a new room or join an existing one
+4. Start collaborating in real-time!
+
+## 🛠️ Manual Setup (Alternative)
 
 ```bash
 pnpm install
+cd apps/http-backend && pnpm dev &
+cd apps/ws-backend && pnpm dev &
+cd apps/frontend && pnpm dev
 ```
 
-Make sure to have `pnpm`, `Node.js` (v18+), and `PostgreSQL` installed.
+## ✨ Features
+
+- Real-time collaborative drawing
+- Multiple drawing tools (Pencil, Rectangle, Circle, Line, Arrow, Eraser)
+- Live chat system
+- Room-based collaboration
+- Professional UI similar to Excalidraw
+
+## 🏗️ Tech Stack
+
+- **Frontend**: Next.js 14 + React + TypeScript + Tailwind CSS
+- **HTTP Backend**: Node.js + Express
+- **WebSocket Backend**: Node.js + WebSocket
+- **Package Manager**: pnpm
 
 ---
 
-## ⚙️ Setup Environment Variables
-
-### Backend (`apps/ws-backend/.env`)
-
-```env
-DATABASE_URL=postgresql://<user>:<password>@localhost:5432/<db>
-JWT_SECRET=your_secret_key   # Optional
-PORT=8080
-```
-
-Initialize Prisma:
-
-```bash
-pnpm prisma migrate dev --name init
-```
-
----
-
-## ▶️ Running the App Locally
-
-### 1. Start WebSocket + HTTP Backend
-
-```bash
-pnpm --filter backend dev
-```
-
-### 2. Start Next.js Frontend
-
-```bash
-pnpm --filter web dev
-```
-
-Navigate to:
-
-```
-http://localhost:3000
-```
-
-You should now see the canvas and be able to draw and chat in real time.
-
----
-
-## 💡 Development Notes
-
-- Token validation is currently disabled for open access.
-- To re-enable token-based auth, uncomment the `checkUser(token)` logic in the WebSocket server.
-- Rooms are dynamically joined and left via WebSocket events (`join_room`, `leave_room`).
-
----
-
-## 🧪 Example WebSocket Payloads
-
-### Join Room
-
-```json
-{
-  "type": "join_room",
-  "roomSlug": "design-team"
-}
-```
-
-
-
-### Draw Shape
-
-```json
-{
-  "type": "shape",
-  "roomSlug": "design-team",
-  "shape": {
-    "type": "rect",
-    "x": 100,
-    "y": 150,
-    "width": 80,
-    "height": 40
-  }
-}
-```
-
----
+**Happy Drawing! 🎨✨**

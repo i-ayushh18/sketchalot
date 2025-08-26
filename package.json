@@ -1,5 +1,5 @@
 {
-  "name": "P2",
+  "name": "sketchalot",
   "private": true,
   "workspaces": [
     "apps/*",
