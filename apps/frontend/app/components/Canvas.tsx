@@ -178,7 +178,7 @@ function MainToolbar({
   ];
 
   return (
-    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-40">
+    <div className="fixed top-6 left-1/2 transform translate-x-8 z-40">
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-3 flex items-center gap-2">
         {/* Drawing Tools */}
         <div className="flex items-center gap-1">

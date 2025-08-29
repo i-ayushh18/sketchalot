@@ -13,8 +13,13 @@ COPY apps/frontend/package.json ./apps/frontend/
 COPY apps/http-backend/package.json ./apps/http-backend/
 COPY apps/ws-backend/package.json ./apps/ws-backend/
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies (including devDependencies)
+RUN pnpm install --frozen-lockfile
+
+# Install individual app dependencies
+RUN cd apps/frontend && pnpm install
+RUN cd apps/http-backend && pnpm install
+RUN cd apps/ws-backend && pnpm install
 
 # Copy source code
 COPY . .
@@ -27,4 +32,4 @@ COPY . .
 EXPOSE 3000 3001 8080 8081
 
 # Start all services in development mode
-CMD ["pnpm", "dev"]
+CMD ["sh", "-c", "cd apps/http-backend && pnpm dev & cd apps/ws-backend && pnpm dev & cd apps/frontend && pnpm dev & wait"]

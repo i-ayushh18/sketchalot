@@ -1,0 +1,5 @@
+Dockerfile
+apps/frontend/app/components/Canvas.tsx
+apps/frontend/package.json
+package.json
+pnpm-lock.yaml
