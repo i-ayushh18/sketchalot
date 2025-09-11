@@ -134,7 +134,7 @@ export function RoomCanvas({ roomId }: { roomId: string }) {
                 </svg>
               </div>
     <div>
-                <h1 className="text-xl font-bold text-gray-900">Collaborative Sketch Board</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Collaborative Drawing</h1>
                 <p className="text-sm text-gray-500">Real-time drawing collaboration</p>
               </div>
             </div>
