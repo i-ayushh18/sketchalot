@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "https://sketchalot.onrender.com"
+  "https://sketchalot-frontend.vercel.app"
 ];
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
