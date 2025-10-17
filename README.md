@@ -1,5 +1,8 @@
 # 🎨 Sketchalot - Collaborative Sketch Board
 
+| ![Alt1](assets/Thumbnail.png) | ![Alt2](assets/Sketchalot.png) |
+| -------------------------- | -------------------------- |
+
 A real-time collaborative drawing application built with Next.js, WebSockets, and modern web technologies. Create and join drawing rooms to collaborate with others in real-time!
 
 ## 🚀 Quick Start
